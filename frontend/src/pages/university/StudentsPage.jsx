@@ -1,15 +1,19 @@
 import { useState, useEffect, useCallback } from "react";
-import toast          from "react-hot-toast";
+import toast from "react-hot-toast";
 import { studentProfiles, groups } from "../../api";
-import Spinner        from "../../components/ui/Spinner";
-import PageHeader     from "../../components/ui/PageHeader";
+import Spinner from "../../components/ui/Spinner";
+import PageHeader from "../../components/ui/PageHeader";
+import Button from "../../components/ui/Button";
+import Select from "../../components/ui/Select";
+import { Users, FilterX, Mail, Fingerprint, Calendar, GraduationCap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function StudentsPage() {
-  const [list,       setList]       = useState([]);
-  const [groupList,  setGroupList]  = useState([]);
-  const [groupFilter,setGroupFilter]= useState("");
-  const [loading,    setLoading]    = useState(true);
-  const [page,       setPage]       = useState(1);
+  const [list, setList] = useState([]);
+  const [groupList, setGroupList] = useState([]);
+  const [groupFilter, setGroupFilter] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
@@ -31,70 +35,136 @@ export default function StudentsPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  return (
-    <div>
-      <PageHeader title="Talabalar" subtitle="Barcha talabalar ro'yxati" />
+  const groupOptions = groupList.map(g => ({ label: g.name, value: g.id }));
 
-      <div style={s.filters}>
-        <select value={groupFilter} onChange={(e) => { setGroupFilter(e.target.value); setPage(1); }} style={s.select}>
-          <option value="">Barcha guruhlar</option>
-          {groupList.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-        </select>
-        <button onClick={() => { setGroupFilter(""); setPage(1); }} style={s.clearBtn}>Tozalash</button>
+  return (
+    <div className="space-y-8 animate-fade-in">
+      <PageHeader 
+        title="Students Directory" 
+        subtitle="Manage and view all enrolled students"
+      />
+
+      {/* Filters */}
+      <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-wrap items-end gap-6">
+        <div className="flex-1 min-w-[240px]">
+          <Select
+            label="Filter by Group"
+            placeholder="All Groups"
+            options={groupOptions}
+            value={groupFilter}
+            onChange={(val) => { setGroupFilter(val); setPage(1); }}
+            icon={<Users size={18} />}
+          />
+        </div>
+        <Button 
+          variant="ghost" 
+          className="h-12 px-6 font-bold text-rose-500 hover:bg-rose-50 rounded-xl"
+          onClick={() => { setGroupFilter(""); setPage(1); }}
+          icon={<FilterX size={18} />}
+        >
+          Reset Filters
+        </Button>
       </div>
 
       {loading ? <Spinner /> : (
-        <>
-          <div style={s.tableWrap}>
-            <table style={s.table}>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden"
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
               <thead>
-                <tr>
-                  <th style={s.th}>F.I.O</th>
-                  <th style={s.th}>Email</th>
-                  <th style={s.th}>Talaba ID</th>
-                  <th style={s.th}>Guruh</th>
-                  <th style={s.th}>Tug'ilgan kun</th>
+                <tr className="bg-slate-50/50 border-b border-slate-100">
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Student</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Contact Info</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">Student ID</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">Group</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Birthday</th>
                 </tr>
               </thead>
-              <tbody>
-                {list.length === 0 ? (
-                  <tr><td colSpan={5} style={s.empty}>Ma'lumot topilmadi</td></tr>
-                ) : list.map((s_) => (
-                  <tr key={s_.id} style={s.tr}>
-                    <td style={s.td}><strong>{s_.full_name}</strong></td>
-                    <td style={s.td}>{s_.email}</td>
-                    <td style={s.td}>{s_.student_id || "—"}</td>
-                    <td style={s.td}>{s_.group_name || "—"}</td>
-                    <td style={s.td}>{s_.date_of_birth || "—"}</td>
-                  </tr>
-                ))}
+              <tbody className="divide-y divide-slate-50">
+                <AnimatePresence mode="popLayout">
+                  {list.length === 0 ? (
+                    <tr className="h-64">
+                      <td colSpan={5} className="text-center text-slate-300">
+                         <GraduationCap size={48} className="mx-auto opacity-20 mb-2" />
+                         <p className="font-bold">No students found</p>
+                      </td>
+                    </tr>
+                  ) : list.map((s_, idx) => (
+                    <motion.tr 
+                      key={s_.id} 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className="hover:bg-slate-50/80 transition-colors group"
+                    >
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-bold text-xs shadow-sm group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300">
+                            {s_.full_name.charAt(0)}
+                          </div>
+                          <span className="font-bold text-slate-800 tracking-tight">{s_.full_name}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-2 text-slate-500">
+                          <Mail size={14} className="opacity-40" />
+                          <span className="text-sm font-medium">{s_.email}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 text-center">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-lg text-[11px] font-black text-slate-500 uppercase tracking-tighter">
+                          <Fingerprint size={12} className="opacity-50" />
+                          {s_.student_id || "N/A"}
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 text-center">
+                        <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold">
+                          {s_.group_name || "—"}
+                        </span>
+                      </td>
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-2 text-slate-400">
+                          <Calendar size={14} className="opacity-40" />
+                          <span className="text-xs font-bold uppercase tracking-tight">{s_.date_of_birth || "—"}</span>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
               </tbody>
             </table>
           </div>
 
           {totalPages > 1 && (
-            <div style={s.pagination}>
-              <button disabled={page === 1}          onClick={() => setPage(p => p - 1)} style={s.pageBtn}>‹</button>
-              <span style={{ fontSize: 13, color: "#64748b" }}>{page} / {totalPages}</span>
-              <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} style={s.pageBtn}>›</button>
+            <div className="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+              <p className="text-sm font-medium text-slate-500">
+                Page <span className="text-slate-900 font-bold">{page}</span> of <span className="text-slate-900 font-bold">{totalPages}</span>
+              </p>
+              <div className="flex gap-2">
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  disabled={page === 1} 
+                  onClick={() => setPage(p => p - 1)}
+                >
+                  Previous
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  disabled={page === totalPages} 
+                  onClick={() => setPage(p => p + 1)}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           )}
-        </>
+        </motion.div>
       )}
     </div>
   );
 }
-
-const s = {
-  filters:   { display: "flex", gap: 10, marginBottom: 20 },
-  select:    { padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: 8, fontSize: 13 },
-  clearBtn:  { padding: "8px 16px", background: "#94a3b8", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13 },
-  tableWrap: { background: "#fff", borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.07)", overflow: "auto" },
-  table:     { width: "100%", borderCollapse: "collapse", fontSize: 13 },
-  th:        { padding: "12px 16px", textAlign: "left", fontWeight: 600, color: "#374151", borderBottom: "1px solid #e2e8f0", background: "#f8fafc" },
-  tr:        { borderBottom: "1px solid #f1f5f9" },
-  td:        { padding: "11px 16px", color: "#374151" },
-  empty:     { padding: 32, textAlign: "center", color: "#94a3b8" },
-  pagination:{ display: "flex", alignItems: "center", gap: 12, justifyContent: "center", marginTop: 16 },
-  pageBtn:   { padding: "6px 14px", border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", cursor: "pointer", fontSize: 14 },
-};

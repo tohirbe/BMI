@@ -40,6 +40,9 @@ import UsersPage           from "./pages/admin/UsersPage";
 import RolesPage           from "./pages/admin/RolesPage";
 import PermissionMatrix    from "./pages/admin/PermissionMatrix";
 
+import ReportsPage      from "./pages/reports/ReportsPage";
+import ProfilePage      from "./pages/auth/ProfilePage";
+import SettingsPage     from "./pages/auth/SettingsPage";
 import Page403             from "./pages/Page403";
 
 function DashboardRedirect() {
@@ -92,6 +95,9 @@ export default function App() {
           <Route path="/notifications"         element={<ProtectedRoute menuKey="notifications"><NotifPage /></ProtectedRoute>} />
           <Route path="/notifications/compose" element={<ProtectedRoute menuKey="notifications"><NotifCompose /></ProtectedRoute>} />
 
+          {/* Reports */}
+          <Route path="/reports" element={<ProtectedRoute menuKey="reports"><ReportsPage /></ProtectedRoute>} />
+
           {/* University */}
           <Route path="/students" element={<ProtectedRoute menuKey="students"><StudentsPage /></ProtectedRoute>} />
           <Route path="/groups"   element={<ProtectedRoute menuKey="groups"><GroupsPage /></ProtectedRoute>} />
@@ -101,6 +107,10 @@ export default function App() {
           <Route path="/admin/users"       element={<ProtectedRoute menuKey="users"><UsersPage /></ProtectedRoute>} />
           <Route path="/admin/roles"       element={<ProtectedRoute menuKey="roles"><RolesPage /></ProtectedRoute>} />
           <Route path="/admin/permissions" element={<ProtectedRoute menuKey="permissions"><PermissionMatrix /></ProtectedRoute>} />
+
+          {/* Account */}
+          <Route path="/profile"  element={<ProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
 
         <Route path="/" element={<CatchAll />} />

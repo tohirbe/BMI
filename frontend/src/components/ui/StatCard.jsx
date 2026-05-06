@@ -1,23 +1,31 @@
-export default function StatCard({ label, value, color = "#3b82f6", icon }) {
+import { motion } from "framer-motion";
+
+export default function StatCard({ label, value, color, icon: Icon, trend }) {
   return (
-    <div style={{ ...s.card, borderTop: `4px solid ${color}` }}>
-      <div style={s.icon}>{icon}</div>
-      <div style={s.value}>{value ?? "—"}</div>
-      <div style={s.label}>{label}</div>
-    </div>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+      className="flex-1 min-w-[240px] bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div 
+          className="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg"
+          style={{ backgroundColor: color, boxShadow: `${color}40 0 8px 0` }}
+        >
+          {Icon}
+        </div>
+        {trend && (
+          <span className={`text-xs font-bold px-2 py-1 rounded-lg ${trend > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+            {trend > 0 ? '+' : ''}{trend}%
+          </span>
+        )}
+      </div>
+      
+      <div>
+        <p className="text-slate-500 text-sm font-medium mb-1">{label}</p>
+        <h3 className="text-3xl font-bold text-slate-800 tracking-tight">{value}</h3>
+      </div>
+    </motion.div>
   );
 }
-
-const s = {
-  card: {
-    background: "#fff",
-    borderRadius: 12,
-    padding: "20px 24px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-    minWidth: 160,
-    flex: 1,
-  },
-  icon:  { fontSize: 28, marginBottom: 8 },
-  value: { fontSize: 28, fontWeight: 700, color: "#1e293b" },
-  label: { fontSize: 13, color: "#64748b", marginTop: 4 },
-};

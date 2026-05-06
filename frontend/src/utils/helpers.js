@@ -1,5 +1,5 @@
 export const ROLE_DASHBOARD = {
-  superuser: "/admin/users",
+  superuser: "/dashboard/rector",
   rector:    "/dashboard/rector",
   dean:      "/dashboard/dean",
   head:      "/dashboard/head",

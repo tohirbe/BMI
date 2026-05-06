@@ -1,37 +1,46 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate }       from "react-router-dom";
-import toast                 from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { grades, subjects, groups } from "../../api";
 import { gradeTypeLabel, letterGradeColor, formatDate } from "../../utils/helpers";
-import { usePermissions }    from "../../hooks/usePermissions";
-import Spinner               from "../../components/ui/Spinner";
-import PageHeader            from "../../components/ui/PageHeader";
+import { usePermissions } from "../../hooks/usePermissions";
+import Spinner from "../../components/ui/Spinner";
+import PageHeader from "../../components/ui/PageHeader";
+import Button from "../../components/ui/Button";
+import Select from "../../components/ui/Select";
+import { Plus, FileUp, FilterX, Edit3, Trash2, GraduationCap, BookOpen, Layers } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-const GRADE_TYPES = ["joriy_1","joriy_2","oraliq","yakuniy"];
+const GRADE_TYPES = [
+  { label: "Joriy 1", value: "joriy_1" },
+  { label: "Joriy 2", value: "joriy_2" },
+  { label: "Oraliq", value: "oraliq" },
+  { label: "Yakuniy", value: "yakuniy" },
+];
 
 export default function GradeListPage() {
-  const navigate            = useNavigate();
-  const { can }             = usePermissions();
-  const canAdd              = can("grades", "can_add");
-  const canEdit             = can("grades", "can_edit");
-  const canDelete           = can("grades", "can_delete");
+  const navigate = useNavigate();
+  const { can } = usePermissions();
+  const canAdd = can("grades", "can_add");
+  const canEdit = can("grades", "can_edit");
+  const canDelete = can("grades", "can_delete");
 
-  const [list,       setList]       = useState([]);
-  const [subList,    setSubList]    = useState([]);
-  const [groupList,  setGroupList]  = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [filters,    setFilters]    = useState({ subject: "", grade_type: "", group: "" });
-  const [page,       setPage]       = useState(1);
+  const [list, setList] = useState([]);
+  const [subList, setSubList] = useState([]);
+  const [groupList, setGroupList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({ subject: "", grade_type: "", group: "" });
+  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     subjects.list().then((r) => setSubList(r.data.data ?? [])).catch(() => {});
-    groups.list().then((r)   => setGroupList(r.data.data ?? [])).catch(() => {});
+    groups.list().then((r) => setGroupList(r.data.data ?? [])).catch(() => {});
   }, []);
 
   const load = useCallback(() => {
     setLoading(true);
-    const params = { page, ...Object.fromEntries(Object.entries(filters).filter(([,v]) => v)) };
+    const params = { page, ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)) };
     grades.list(params)
       .then((r) => {
         setList(r.data.results ?? []);
@@ -54,108 +63,210 @@ export default function GradeListPage() {
     }
   };
 
+  const subjectOptions = subList.map(s => ({ label: s.name, value: s.id }));
+  const groupOptions = groupList.map(g => ({ label: g.name, value: g.id }));
+
   return (
-    <div>
+    <div className="space-y-8 animate-fade-in">
       <PageHeader
-        title="Baholar"
+        title="Students Grades"
+        subtitle="Manage and monitor academic performance records"
         actions={
           canAdd && (
-            <>
-              <button onClick={() => navigate("/grades/new")}  style={s.btn("#3b82f6")}>+ Baho kiritish</button>
-              <button onClick={() => navigate("/grades/bulk")} style={s.btn("#8b5cf6")}>CSV yuklash</button>
-            </>
+            <div className="flex gap-3">
+              <Button 
+                variant="secondary" 
+                icon={<FileUp size={18} />} 
+                onClick={() => navigate("/grades/bulk")}
+              >
+                CSV Import
+              </Button>
+              <Button 
+                icon={<Plus size={18} />} 
+                onClick={() => navigate("/grades/new")}
+              >
+                Enter Grade
+              </Button>
+            </div>
           )
         }
       />
 
-      <div style={s.filters}>
-        <select value={filters.group} onChange={(e) => setFilters({ ...filters, group: e.target.value })} style={s.select}>
-          <option value="">Barcha guruhlar</option>
-          {groupList.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-        </select>
-        <select value={filters.subject} onChange={(e) => setFilters({ ...filters, subject: e.target.value })} style={s.select}>
-          <option value="">Barcha fanlar</option>
-          {subList.map((sub) => <option key={sub.id} value={sub.id}>{sub.name}</option>)}
-        </select>
-        <select value={filters.grade_type} onChange={(e) => setFilters({ ...filters, grade_type: e.target.value })} style={s.select}>
-          <option value="">Barcha turlar</option>
-          {GRADE_TYPES.map((t) => <option key={t} value={t}>{gradeTypeLabel(t)}</option>)}
-        </select>
-        <button onClick={() => { setFilters({ subject: "", grade_type: "", group: "" }); setPage(1); }} style={s.btn("#94a3b8")}>
-          Tozalash
-        </button>
+      {/* Filter Section */}
+      <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-wrap items-end gap-6">
+        <div className="flex-1 min-w-[200px]">
+          <Select
+            label="Group"
+            placeholder="All Groups"
+            options={groupOptions}
+            value={filters.group}
+            onChange={(val) => setFilters({ ...filters, group: val })}
+            icon={<Layers size={18} />}
+          />
+        </div>
+        <div className="flex-1 min-w-[200px]">
+          <Select
+            label="Subject"
+            placeholder="All Subjects"
+            options={subjectOptions}
+            value={filters.subject}
+            onChange={(val) => setFilters({ ...filters, subject: val })}
+            icon={<BookOpen size={18} />}
+          />
+        </div>
+        <div className="flex-1 min-w-[200px]">
+          <Select
+            label="Grade Type"
+            placeholder="All Types"
+            options={GRADE_TYPES}
+            value={filters.grade_type}
+            onChange={(val) => setFilters({ ...filters, grade_type: val })}
+          />
+        </div>
+        
+        <Button 
+          variant="ghost" 
+          className="h-12 px-6 font-bold text-rose-500 hover:bg-rose-50 rounded-xl"
+          onClick={() => { setFilters({ subject: "", grade_type: "", group: "" }); setPage(1); }}
+          icon={<FilterX size={18} />}
+        >
+          Reset
+        </Button>
       </div>
 
       {loading ? <Spinner /> : (
-        <>
-          <div style={s.tableWrap}>
-            <table style={s.table}>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden"
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
               <thead>
-                <tr>
-                  <th style={s.th}>Talaba</th>
-                  <th style={s.th}>Fan</th>
-                  <th style={s.th}>Tur</th>
-                  <th style={s.th}>Ball</th>
-                  <th style={s.th}>Baho</th>
-                  <th style={s.th}>Sana</th>
-                  <th style={s.th}>Kiritgan</th>
-                  {(canEdit || canDelete) && <th style={s.th}>Amal</th>}
+                <tr className="bg-slate-50/50 border-b border-slate-100">
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Student</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Subject</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">Type</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">Score</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">Grade</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Date</th>
+                  {(canEdit || canDelete) && <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>}
                 </tr>
               </thead>
-              <tbody>
-                {list.length === 0 ? (
-                  <tr><td colSpan={8} style={s.empty}>Ma'lumot topilmadi</td></tr>
-                ) : list.map((g) => (
-                  <tr key={g.id} style={s.tr}>
-                    <td style={s.td}>{g.student_name}</td>
-                    <td style={s.td}>{g.subject_name}</td>
-                    <td style={s.td}>{gradeTypeLabel(g.grade_type)}</td>
-                    <td style={s.td}><strong>{g.score}</strong></td>
-                    <td style={s.td}>
-                      <span style={{ color: letterGradeColor(g.letter_grade), fontWeight: 600 }}>
-                        {g.letter_grade}
-                      </span>
-                    </td>
-                    <td style={s.td}>{formatDate(g.date)}</td>
-                    <td style={s.td}>{g.entered_by_name ?? "—"}</td>
-                    {(canEdit || canDelete) && (
-                      <td style={s.td}>
-                        <div style={{ display: "flex", gap: 6 }}>
-                          {canEdit   && <button onClick={() => navigate(`/grades/${g.id}/edit`)} style={s.aBtn("#3b82f6")}>Tahrirlash</button>}
-                          {canDelete && <button onClick={() => handleDelete(g.id)}               style={s.aBtn("#ef4444")}>O'chirish</button>}
+              <tbody className="divide-y divide-slate-50">
+                <AnimatePresence mode="popLayout">
+                  {list.length === 0 ? (
+                    <motion.tr 
+                      initial={{ opacity: 0 }} 
+                      animate={{ opacity: 1 }} 
+                      className="h-64"
+                    >
+                      <td colSpan={8} className="text-center">
+                        <div className="flex flex-col items-center gap-2 text-slate-300">
+                          <BookOpen size={48} className="opacity-20 mb-2" />
+                          <p className="font-bold">No academic records found</p>
+                          <p className="text-sm">Try adjusting your filters</p>
                         </div>
                       </td>
-                    )}
-                  </tr>
-                ))}
+                    </motion.tr>
+                  ) : list.map((g, idx) => (
+                    <motion.tr 
+                      key={g.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className="hover:bg-slate-50/80 transition-colors group"
+                    >
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500 font-bold text-xs">
+                            {g.student_name.charAt(0)}
+                          </div>
+                          <span className="font-bold text-slate-800">{g.student_name}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5">
+                        <span className="text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-lg">
+                          {g.subject_name}
+                        </span>
+                      </td>
+                      <td className="px-8 py-5 text-center">
+                        <span className="text-xs font-bold uppercase tracking-tighter text-slate-400">
+                          {gradeTypeLabel(g.grade_type)}
+                        </span>
+                      </td>
+                      <td className="px-8 py-5 text-center">
+                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-50 font-black text-slate-800">
+                          {g.score}
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 text-center">
+                        <span 
+                          className="text-sm font-black px-4 py-2 rounded-xl"
+                          style={{ color: letterGradeColor(g.letter_grade), backgroundColor: `${letterGradeColor(g.letter_grade)}10` }}
+                        >
+                          {g.letter_grade}
+                        </span>
+                      </td>
+                      <td className="px-8 py-5 text-sm text-slate-500 font-medium">{formatDate(g.date)}</td>
+                      {(canEdit || canDelete) && (
+                        <td className="px-8 py-5 text-right">
+                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {canEdit && (
+                              <button 
+                                onClick={() => navigate(`/grades/${g.id}/edit`)}
+                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                title="Edit"
+                              >
+                                <Edit3 size={18} />
+                              </button>
+                            )}
+                            {canDelete && (
+                              <button 
+                                onClick={() => handleDelete(g.id)}
+                                className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                title="Delete"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
               </tbody>
             </table>
           </div>
 
           {totalPages > 1 && (
-            <div style={s.pagination}>
-              <button disabled={page === 1}          onClick={() => setPage(p => p - 1)} style={s.pageBtn}>‹</button>
-              <span style={{ fontSize: 13, color: "#64748b" }}>{page} / {totalPages}</span>
-              <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} style={s.pageBtn}>›</button>
+            <div className="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+              <p className="text-sm font-medium text-slate-500">
+                Page <span className="text-slate-900 font-bold">{page}</span> of <span className="text-slate-900 font-bold">{totalPages}</span>
+              </p>
+              <div className="flex gap-2">
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  disabled={page === 1} 
+                  onClick={() => setPage(p => p - 1)}
+                >
+                  Previous
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  disabled={page === totalPages} 
+                  onClick={() => setPage(p => p + 1)}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           )}
-        </>
+        </motion.div>
       )}
     </div>
   );
 }
-
-const s = {
-  filters:   { display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" },
-  select:    { padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: 8, fontSize: 13, cursor: "pointer" },
-  btn:       (bg) => ({ padding: "8px 16px", background: bg, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 500 }),
-  tableWrap: { background: "#fff", borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.07)", overflow: "auto" },
-  table:     { width: "100%", borderCollapse: "collapse", fontSize: 13 },
-  th:        { padding: "12px 16px", textAlign: "left", fontWeight: 600, color: "#374151", whiteSpace: "nowrap", borderBottom: "1px solid #e2e8f0", background: "#f8fafc" },
-  tr:        { borderBottom: "1px solid #f1f5f9" },
-  td:        { padding: "11px 16px", color: "#374151", verticalAlign: "middle" },
-  empty:     { padding: 32, textAlign: "center", color: "#94a3b8" },
-  aBtn:      (bg) => ({ padding: "4px 10px", background: bg, color: "#fff", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 12 }),
-  pagination:{ display: "flex", alignItems: "center", gap: 12, justifyContent: "center", marginTop: 16 },
-  pageBtn:   { padding: "6px 14px", border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", cursor: "pointer", fontSize: 14 },
-};

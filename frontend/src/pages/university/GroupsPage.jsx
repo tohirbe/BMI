@@ -1,14 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
-import toast          from "react-hot-toast";
+import toast from "react-hot-toast";
 import { groups, departments } from "../../api";
-import Spinner        from "../../components/ui/Spinner";
-import PageHeader     from "../../components/ui/PageHeader";
+import Spinner from "../../components/ui/Spinner";
+import PageHeader from "../../components/ui/PageHeader";
+import Button from "../../components/ui/Button";
+import Select from "../../components/ui/Select";
+import { Users, FilterX, Building2, Calendar, Layers, Bookmark } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function GroupsPage() {
-  const [list,       setList]       = useState([]);
-  const [deptList,   setDeptList]   = useState([]);
+  const [list, setList] = useState([]);
+  const [deptList, setDeptList] = useState([]);
   const [deptFilter, setDeptFilter] = useState("");
-  const [loading,    setLoading]    = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     departments.list().then((r) => setDeptList(r.data.data ?? [])).catch(() => {});
@@ -26,63 +30,115 @@ export default function GroupsPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  return (
-    <div>
-      <PageHeader title="Guruhlar" subtitle="Barcha guruhlar ro'yxati" />
+  const deptOptions = deptList.map(d => ({ label: d.name, value: d.id }));
 
-      <div style={s.filters}>
-        <select value={deptFilter} onChange={(e) => { setDeptFilter(e.target.value); }} style={s.select}>
-          <option value="">Barcha kafedralar</option>
-          {deptList.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-        </select>
-        <button onClick={() => setDeptFilter("")} style={s.clearBtn}>Tozalash</button>
+  return (
+    <div className="space-y-8 animate-fade-in">
+      <PageHeader 
+        title="Academic Groups" 
+        subtitle="Manage and organize student cohorts and departments"
+      />
+
+      {/* Filters */}
+      <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-wrap items-end gap-6">
+        <div className="flex-1 min-w-[280px]">
+          <Select
+            label="Filter by Department"
+            placeholder="All Departments"
+            options={deptOptions}
+            value={deptFilter}
+            onChange={(val) => setDeptFilter(val)}
+            icon={<Building2 size={18} />}
+          />
+        </div>
+        <Button 
+          variant="ghost" 
+          className="h-12 px-6 font-bold text-rose-500 hover:bg-rose-50 rounded-xl"
+          onClick={() => setDeptFilter("")}
+          icon={<FilterX size={18} />}
+        >
+          Reset
+        </Button>
       </div>
 
       {loading ? <Spinner /> : (
-        <div style={s.tableWrap}>
-          <table style={s.table}>
-            <thead>
-              <tr>
-                <th style={s.th}>Guruh nomi</th>
-                <th style={s.th}>Kafedra</th>
-                <th style={s.th}>O'quv yili</th>
-                <th style={s.th}>Kurs</th>
-                <th style={s.th}>Semestr</th>
-                <th style={s.th}>Talabalar soni</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.length === 0 ? (
-                <tr><td colSpan={6} style={s.empty}>Ma'lumot topilmadi</td></tr>
-              ) : list.map((g) => (
-                <tr key={g.id} style={s.tr}>
-                  <td style={s.td}><strong>{g.name}</strong></td>
-                  <td style={s.td}>{g.department_name}</td>
-                  <td style={s.td}>{g.academic_year_name}</td>
-                  <td style={s.td}>{g.course}-kurs</td>
-                  <td style={s.td}>{g.semester}-semestr</td>
-                  <td style={s.td}>
-                    <span style={s.badge}>{g.student_count} ta</span>
-                  </td>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden"
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-slate-50/50 border-b border-slate-100">
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Group Name</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Department</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">Academic Year</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">Course / Semester</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Students</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                <AnimatePresence mode="popLayout">
+                  {list.length === 0 ? (
+                    <tr className="h-64">
+                      <td colSpan={6} className="text-center text-slate-300">
+                         <Layers size={48} className="mx-auto opacity-20 mb-2" />
+                         <p className="font-bold">No groups found</p>
+                      </td>
+                    </tr>
+                  ) : list.map((g, idx) => (
+                    <motion.tr 
+                      key={g.id} 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className="hover:bg-slate-50/80 transition-colors group"
+                    >
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-bold text-xs shadow-sm">
+                            {g.name.slice(0, 2)}
+                          </div>
+                          <span className="font-bold text-slate-800 tracking-tight">{g.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 text-sm font-medium text-slate-500">
+                        <div className="flex items-center gap-2">
+                          <Building2 size={14} className="opacity-40" />
+                          {g.department_name}
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 text-center">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-lg text-[11px] font-black text-slate-500 uppercase tracking-tighter">
+                          <Calendar size={12} className="opacity-50" />
+                          {g.academic_year_name}
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold">
+                            {g.course}-kurs
+                          </span>
+                          <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold">
+                            {g.semester}-sem
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 text-right">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-100">
+                          <Users size={14} />
+                          {g.student_count}
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
       )}
     </div>
   );
 }
-
-const s = {
-  filters:   { display: "flex", gap: 10, marginBottom: 20 },
-  select:    { padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: 8, fontSize: 13 },
-  clearBtn:  { padding: "8px 16px", background: "#94a3b8", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13 },
-  tableWrap: { background: "#fff", borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.07)", overflow: "auto" },
-  table:     { width: "100%", borderCollapse: "collapse", fontSize: 13 },
-  th:        { padding: "12px 16px", textAlign: "left", fontWeight: 600, color: "#374151", borderBottom: "1px solid #e2e8f0", background: "#f8fafc" },
-  tr:        { borderBottom: "1px solid #f1f5f9" },
-  td:        { padding: "11px 16px", color: "#374151" },
-  empty:     { padding: 32, textAlign: "center", color: "#94a3b8" },
-  badge:     { padding: "2px 10px", borderRadius: 99, background: "#dbeafe", color: "#2563eb", fontSize: 12, fontWeight: 600 },
-};
