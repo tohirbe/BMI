@@ -17,32 +17,89 @@
 }
 
 @layer base {
+  :root {
+    --color-bg-primary: #f1f5f9;
+    --color-bg-secondary: #ffffff;
+    --color-text-primary: #0f172a;
+    --color-text-secondary: #475569;
+    --color-border: #e2e8f0;
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.5);
+  }
+
+  .dark {
+    --color-bg-primary: #0f172a;
+    --color-bg-secondary: #1e293b;
+    --color-text-primary: #f1f5f9;
+    --color-text-secondary: #94a3b8;
+    --color-border: #334155;
+    --glass-bg: rgba(15, 23, 42, 0.8);
+    --glass-border: rgba(51, 65, 85, 0.5);
+  }
+
   body {
-    @apply font-['Outfit'] bg-main text-slate-900 antialiased;
+    @apply font-['Outfit'] bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] antialiased transition-colors duration-200;
   }
 }
 
 @layer components {
-  .card {
-    @apply bg-white rounded-xl shadow-sm border border-slate-200 p-6;
+  .card-premium {
+    @apply bg-[var(--color-bg-secondary)] rounded-3xl border border-[var(--color-border)] shadow-sm transition-all duration-200;
   }
   
-  .btn-primary {
-    @apply bg-primary hover:bg-primary-hover text-white px-6 py-2.5 rounded-lg font-medium transition-all active:scale-95 shadow-lg shadow-indigo-200;
+  .glass-header {
+    @apply sticky top-0 z-40 bg-[var(--color-bg-secondary)]/90 backdrop-blur-md border-b border-[var(--color-border)] transition-all duration-200;
   }
 
-  .glass-effect {
-    @apply bg-white/70 backdrop-blur-md border border-white/20;
+  .glass-premium {
+    @apply bg-[var(--glass-bg)] backdrop-blur-md border border-[var(--glass-border)] rounded-2xl shadow-lg;
+  }
+
+  .input-premium {
+    @apply bg-[var(--color-bg-primary)] border border-[var(--color-border)] focus:border-indigo-500 rounded-xl transition-all outline-none text-[var(--color-text-primary)] font-medium px-4 py-2.5 placeholder:text-slate-400/60;
+  }
+
+  .btn-primary {
+    @apply bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 shadow-md;
+  }
+
+  /* Make sure action buttons are ALWAYS visible */
+  .action-btn {
+    @apply p-2 rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-primary)] hover:text-indigo-600 transition-all opacity-100 flex items-center justify-center border border-transparent hover:border-[var(--color-border)];
+  }
+
+  .badge {
+    @apply px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border;
   }
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Muted */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-[var(--color-border)] rounded-full hover:bg-indigo-500/40 transition-colors;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  @apply bg-[var(--color-bg-primary)];
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 rounded-full hover:bg-slate-400;
+  @apply bg-[var(--color-border)] rounded-full hover:bg-indigo-500/50 transition-colors;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
 }

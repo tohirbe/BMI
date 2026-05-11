@@ -1,28 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { grades, subjects, studentProfiles } from "../../api";
-import { gradeTypeLabel } from "../../utils/helpers";
 import Spinner from "../../components/ui/Spinner";
 import PageHeader from "../../components/ui/PageHeader";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
 import CustomDatePicker from "../../components/ui/CustomDatePicker";
-import { Save, X, BookOpen, User, ClipboardList, PenTool, Calendar } from "lucide-react";
+import { Save, X, BookOpen, User, ClipboardList, PenTool, Calendar, AlignLeft } from "lucide-react";
 import { motion } from "framer-motion";
 
-const GRADE_TYPES = [
-  { value: "joriy_1", max: 15, label: "Joriy 1" },
-  { value: "joriy_2", max: 15, label: "Joriy 2" },
-  { value: "oraliq",  max: 30, label: "Oraliq" },
-  { value: "yakuniy", max: 40, label: "Yakuniy" },
-];
-
 export default function GradeFormPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
   const isEdit = Boolean(id);
+
+  const GRADE_TYPES = useMemo(() => [
+    { value: "joriy_1", max: 15, label: t('grades.types.joriy_1') },
+    { value: "joriy_2", max: 15, label: t('grades.types.joriy_2') },
+    { value: "oraliq",  max: 30, label: t('grades.types.oraliq') },
+    { value: "yakuniy", max: 40, label: t('grades.types.yakuniy') },
+  ], [t]);
 
   const [form, setForm] = useState({
     student: "", subject: "", grade_type: "joriy_1", score: "", date: new Date(), note: "",
@@ -59,16 +60,16 @@ export default function GradeFormPage() {
           note: d.note ?? "",
         });
       })
-      .catch(() => toast.error("Ma'lumot yuklanmadi"))
+      .catch(() => toast.error(t('common.error')))
       .finally(() => setLoading(false));
-  }, [id, isEdit]);
+  }, [id, isEdit, t]);
 
-  const maxScore = GRADE_TYPES.find((t) => t.value === form.grade_type)?.max ?? 100;
+  const maxScore = GRADE_TYPES.find((t_) => t_.value === form.grade_type)?.max ?? 100;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (Number(form.score) > maxScore) {
-      toast.error(`Ball ${maxScore} dan oshmasligi kerak`);
+      toast.error(t('grades.score_limit_error'));
       return;
     }
     setSubmitting(true);
@@ -78,15 +79,15 @@ export default function GradeFormPage() {
     try {
       if (isEdit) {
         await grades.update(id, payload);
-        toast.success("Yangilandi");
+        toast.success(t('common.success'));
       } else {
         await grades.create(payload);
-        toast.success("Baho saqlandi");
+        toast.success(t('common.success'));
       }
       navigate("/grades");
     } catch (err) {
       const detail = err.response?.data?.details;
-      const msg = detail?.score?.[0] ?? detail?.non_field_errors?.[0] ?? err.response?.data?.error ?? "Xato";
+      const msg = detail?.score?.[0] ?? detail?.non_field_errors?.[0] ?? err.response?.data?.error ?? t('common.error');
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -97,58 +98,58 @@ export default function GradeFormPage() {
 
   const subjectOptions = subList.map(s => ({ label: `${s.name} — ${s.group_name}`, value: s.id }));
   const studentOptions = students.map(sp => ({ label: `${sp.full_name} (${sp.student_id})`, value: sp.user }));
-  const gradeTypeOptions = GRADE_TYPES.map(t => ({ label: `${t.label} (max ${t.max})`, value: t.value }));
+  const gradeTypeOptions = GRADE_TYPES.map(t_ => ({ label: `${t_.label} (max ${t_.max})`, value: t_.value }));
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-20">
+    <div className="max-w-5xl mx-auto space-y-10 animate-fade-in pb-20 px-6 pt-6">
       <PageHeader 
-        title={isEdit ? "Update Grade" : "Enter New Grade"} 
-        subtitle="Provide academic score for a student record"
+        title={isEdit ? t('grades.form_title_edit') : t('grades.form_title_new')} 
+        subtitle={t('grades.form_subtitle')}
         actions={
-          <Button variant="ghost" icon={<X size={18} />} onClick={() => navigate("/grades")}>
-            Cancel
+          <Button variant="secondary" className="h-14 px-8 rounded-2xl font-black text-xs uppercase tracking-widest border-2" icon={<X size={20} />} onClick={() => navigate("/grades")}>
+            {t('common.cancel')}
           </Button>
         }
       />
 
       <motion.div 
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/50"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="card-premium p-10 md:p-12 shadow-md"
       >
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <form onSubmit={handleSubmit} className="space-y-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <Select
-              label="Subject"
-              placeholder="Choose a subject"
+              label={t('attendance.subject')}
+              placeholder={t('grades.select_subject')}
               options={subjectOptions}
               value={form.subject}
               onChange={(val) => setForm({ ...form, subject: val, student: "" })}
-              icon={<BookOpen size={18} />}
+              icon={<BookOpen size={20} />}
             />
 
             <Select
-              label="Student"
-              placeholder="Select student"
+              label={t('attendance.student')}
+              placeholder={t('grades.select_student')}
               options={studentOptions}
               value={form.student}
               onChange={(val) => setForm({ ...form, student: val })}
-              icon={<User size={18} />}
+              icon={<User size={20} />}
               disabled={!form.subject}
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             <Select
-              label="Grade Type"
+              label={t('grades.grade_type')}
               options={gradeTypeOptions}
               value={form.grade_type}
               onChange={(val) => setForm({ ...form, grade_type: val, score: "" })}
-              icon={<ClipboardList size={18} />}
+              icon={<ClipboardList size={20} />}
             />
 
             <Input
-              label={`Score (0 – ${maxScore})`}
+              label={`${t('grades.score')} (0 – ${maxScore})`}
               type="number"
               min={0}
               max={maxScore}
@@ -156,37 +157,41 @@ export default function GradeFormPage() {
               placeholder={`Max ${maxScore}`}
               value={form.score}
               onChange={(e) => setForm({ ...form, score: e.target.value })}
-              icon={<PenTool size={18} />}
+              icon={<PenTool size={20} />}
               required
             />
 
             <CustomDatePicker
-              label="Assessment Date"
+              label={t('grades.assessment_date')}
               selected={form.date}
               onChange={(d) => setForm({ ...form, date: d })}
-              icon={<Calendar size={18} />}
+              icon={<Calendar size={20} />}
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-bold text-slate-700 ml-1">Optional Note</label>
-            <textarea
-              className="w-full bg-slate-50 border-slate-200 text-slate-900 text-sm rounded-2xl p-4 transition-all focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 min-h-[120px] outline-none"
-              value={form.note}
-              onChange={(e) => setForm({ ...form, note: e.target.value })}
-              placeholder="Add any context or comments here..."
-            />
+          <div className="relative group">
+            <label className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] absolute left-6 -top-3 bg-[var(--color-bg-secondary)] px-3 py-1 rounded-lg border-2 border-indigo-600/10 z-10">
+              {t('grades.optional_note')}
+            </label>
+            <div className="flex items-start gap-5 w-full p-6 bg-[var(--color-bg-primary)] border-2 border-[var(--color-border)] rounded-[2rem] focus-within:border-indigo-600 focus-within:ring-4 focus-within:ring-indigo-600/5 transition-all shadow-inner group">
+              <AlignLeft size={24} className="text-indigo-600 opacity-40 group-focus-within:opacity-100 mt-1" />
+              <textarea
+                className="w-full bg-transparent outline-none text-[var(--color-text-primary)] font-bold text-lg placeholder:opacity-20 resize-none leading-relaxed min-h-[160px]"
+                value={form.note}
+                onChange={(e) => setForm({ ...form, note: e.target.value })}
+                placeholder="Add any context or comments here..."
+              />
+            </div>
           </div>
 
-          <div className="pt-6 flex justify-end gap-4 border-t border-slate-50">
+          <div className="pt-10 flex justify-end border-t-2 border-[var(--color-border)]">
             <Button 
               type="submit" 
-              size="lg" 
-              className="min-w-[200px]"
+              className="h-18 px-16 text-lg shadow-2xl shadow-indigo-600/30 font-black rounded-2xl w-full md:w-auto uppercase tracking-widest active:scale-95 transition-all"
               loading={submitting}
-              icon={<Save size={20} />}
+              icon={<Save size={24} />}
             >
-              {isEdit ? "Update Grade Record" : "Save Grade Record"}
+              {isEdit ? t('grades.update_record') : t('grades.save_record')}
             </Button>
           </div>
         </form>

@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { rbac } from "../../api";
 import Spinner from "../../components/ui/Spinner";
 import PageHeader from "../../components/ui/PageHeader";
-import { Shield, Key, Eye, Plus, Edit3, Trash2, CheckCircle2, AlertCircle, Info, Lock, Globe, Settings2 } from "lucide-react";
+import { Shield, Plus, Edit3, Trash2, Globe, Settings2, Info, Eye, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const ACTIONS = [
@@ -15,6 +16,7 @@ const ACTIONS = [
 ];
 
 export default function PermissionMatrix() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const initRoleId = searchParams.get("role") ?? "";
 
@@ -32,14 +34,13 @@ export default function PermissionMatrix() {
         setRoles(fetchedRoles);
         setMenuItems(mRes.data.data ?? []);
         
-        // Auto-select first role if none in URL
         if (!selRole && fetchedRoles.length > 0) {
           setSelRole(String(fetchedRoles[0].id));
         }
       })
-      .catch(() => toast.error("Ma'lumot yuklanmadi"))
+      .catch(() => toast.error(t('common.error')))
       .finally(() => setLoading(false));
-  }, [selRole]);
+  }, [selRole, t]);
 
   const loadPerms = useCallback((roleId) => {
     if (!roleId) return;
@@ -87,7 +88,7 @@ export default function PermissionMatrix() {
         can_delete: actionKey === "can_delete" ? newVal : (current.can_delete ?? false),
       });
     } catch {
-      toast.error("Saqlashda xato");
+      toast.error(t('common.error'));
       setPerms((prev) => ({
         ...prev,
         [selRole]: { ...prev[selRole], [menuItem.key]: current },
@@ -103,24 +104,23 @@ export default function PermissionMatrix() {
   const selectedRole = roles.find((r) => String(r.id) === String(selRole));
 
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
+    <div className="space-y-10 animate-fade-in pb-20">
       <PageHeader 
-        title="Permission Matrix" 
-        subtitle="Manage granular access control for each role across the platform"
-        icon={<Settings2 size={28} className="text-indigo-600" />}
+        title={t('nav.permissions')} 
+        subtitle="Ruxsatnomalar matritsasi orqali tizim huquqlarini boshqarish"
       />
 
       {/* Role Selector Tabs */}
-      <div className="flex bg-slate-100/50 p-1 rounded-2xl w-fit overflow-x-auto scrollbar-hide">
+      <div className="flex bg-[var(--color-bg-primary)] p-1.5 rounded-2xl w-fit border border-[var(--color-border)] overflow-x-auto scrollbar-hide">
         {roles.map((role) => (
           <button
             key={role.id}
             onClick={() => setSelRole(String(role.id))}
             className={`
-              px-8 py-3 rounded-xl text-sm font-black transition-all whitespace-nowrap
+              px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap
               ${String(selRole) === String(role.id) 
-                ? 'bg-white text-indigo-600 shadow-lg shadow-indigo-200/50' 
-                : 'text-slate-400 hover:text-slate-600'}
+                ? 'bg-indigo-600 text-white shadow-lg' 
+                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'}
             `}
           >
             {role.name}
@@ -135,41 +135,41 @@ export default function PermissionMatrix() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="space-y-6"
+            className="space-y-8"
           >
-            <div className="bg-indigo-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-indigo-200 flex flex-col md:flex-row md:items-center justify-between gap-6">
-               <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-xl border border-white/20">
-                     <Shield size={28} />
+            <div className="bg-indigo-600 p-10 rounded-[2.5rem] text-white shadow-xl shadow-indigo-600/10 flex flex-col md:flex-row md:items-center justify-between gap-10">
+               <div className="flex items-center gap-6">
+                  <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-xl border border-white/20">
+                     <Shield size={32} />
                   </div>
                   <div>
-                     <h3 className="text-2xl font-black">{selectedRole.name} Permissions</h3>
-                     <p className="text-indigo-100 font-medium text-sm flex items-center gap-2">
-                        <Info size={14} /> Changes are automatically saved in real-time
+                     <h3 className="text-2xl font-black tracking-tight">{selectedRole.name} Huquqlari</h3>
+                     <p className="text-indigo-100 font-bold text-sm mt-1 opacity-80 flex items-center gap-2">
+                        <Info size={16} /> O'zgarishlar avtomatik ravishda saqlanadi
                      </p>
                   </div>
                </div>
                
-               <div className="flex gap-2">
+               <div className="flex flex-wrap gap-3">
                   {ACTIONS.map((a) => (
-                    <div key={a.key} className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/10">
-                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: a.color }} />
+                    <div key={a.key} className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10">
+                       <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: a.color }} />
                        {a.label}
                     </div>
                   ))}
                </div>
             </div>
 
-            <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
-               <div className="overflow-x-auto">
-                  <table className="w-full text-left border-separate border-spacing-0">
+            <div className="card-premium overflow-hidden shadow-md">
+               <div className="overflow-x-auto custom-scrollbar">
+                  <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/50">
-                        <th className="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Page / Module</th>
-                        <th className="px-8 py-6 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">System Path</th>
+                      <tr className="bg-[var(--color-bg-primary)]/40 border-b border-[var(--color-border)]">
+                        <th className="px-8 py-6 text-[10px] font-black text-[var(--color-text-secondary)] uppercase tracking-[0.2em]">Modul / Sahifa</th>
+                        <th className="px-8 py-6 text-[10px] font-black text-[var(--color-text-secondary)] uppercase tracking-[0.2em]">Tizim manzili</th>
                         {ACTIONS.map((a) => (
-                          <th key={a.key} className="px-8 py-6 text-[11px] font-black uppercase tracking-widest border-b border-slate-100 text-center" style={{ color: a.color }}>
-                             <div className="flex flex-col items-center gap-1">
+                          <th key={a.key} className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-center" style={{ color: a.color }}>
+                             <div className="flex flex-col items-center gap-2">
                                 {a.icon}
                                 {a.label}
                              </div>
@@ -177,21 +177,21 @@ export default function PermissionMatrix() {
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50">
+                    <tbody className="divide-y divide-[var(--color-border)]">
                       {menuItems.map((item) => {
                         const p = currentPerms[item.key] ?? {};
                         return (
-                          <tr key={item.key} className="hover:bg-slate-50/50 transition-colors group">
-                            <td className="px-8 py-5">
-                               <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-all">
-                                     <Globe size={16} />
+                          <tr key={item.key} className="hover:bg-[var(--color-bg-primary)]/40 transition-colors group">
+                            <td className="px-8 py-6">
+                               <div className="flex items-center gap-4">
+                                  <div className="w-9 h-9 rounded-xl bg-[var(--color-bg-primary)] flex items-center justify-center text-[var(--color-text-secondary)] group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                                     <Globe size={18} />
                                   </div>
-                                  <span className="font-bold text-slate-800 tracking-tight">{item.label}</span>
+                                  <span className="font-black text-[var(--color-text-primary)] tracking-tight text-sm">{t(`nav.${item.key}`, item.label)}</span>
                                </div>
                             </td>
-                            <td className="px-8 py-5">
-                               <code className="text-[10px] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+                            <td className="px-8 py-6">
+                               <code className="text-[10px] font-black text-[var(--color-text-secondary)] bg-[var(--color-bg-primary)]/80 px-3 py-1.5 rounded-lg border border-[var(--color-border)] opacity-60">
                                   {item.url_path}
                                </code>
                             </td>
@@ -200,7 +200,7 @@ export default function PermissionMatrix() {
                               const checked = !!p[a.key];
                               const isSaving = !!saving[sk];
                               return (
-                                <td key={a.key} className="px-8 py-5 text-center">
+                                <td key={a.key} className="px-8 py-6 text-center">
                                   <label className="relative inline-flex items-center cursor-pointer group/toggle">
                                     <input
                                       type="checkbox"
@@ -210,14 +210,14 @@ export default function PermissionMatrix() {
                                       className="sr-only peer"
                                     />
                                     <div className={`
-                                      w-12 h-6 rounded-full transition-all duration-300 relative
-                                      ${checked ? 'bg-indigo-500' : 'bg-slate-200'}
-                                      peer-disabled:opacity-50
+                                      w-12 h-6 rounded-full transition-all duration-300 relative border-2 border-transparent
+                                      ${checked ? '' : 'bg-[var(--color-border)]'}
+                                      peer-disabled:opacity-50 shadow-inner
                                     `}
                                     style={{ backgroundColor: checked ? a.color : '' }}
                                     >
                                        <div className={`
-                                          absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-md
+                                          absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-sm
                                           ${checked ? 'translate-x-6' : 'translate-x-0'}
                                           ${isSaving ? 'animate-pulse scale-75' : ''}
                                        `} />
@@ -235,13 +235,13 @@ export default function PermissionMatrix() {
             </div>
           </motion.div>
         ) : (
-          <div className="bg-white rounded-[3rem] p-32 text-center border border-dashed border-slate-200 space-y-4">
-             <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mx-auto text-slate-300">
-                <Shield size={40} />
+          <div className="card-premium p-32 text-center border-dashed space-y-6">
+             <div className="w-24 h-24 bg-[var(--color-bg-primary)] rounded-[2.5rem] flex items-center justify-center mx-auto text-[var(--color-text-secondary)] opacity-20">
+                <Shield size={48} />
              </div>
              <div className="space-y-2">
-                <h3 className="text-xl font-black text-slate-400">Select a role to manage permissions</h3>
-                <p className="text-sm text-slate-300 max-w-xs mx-auto font-medium">Use the tabs above to switch between different system roles.</p>
+                <h3 className="text-xl font-black text-[var(--color-text-primary)] opacity-40">Rolni tanlang</h3>
+                <p className="text-sm text-[var(--color-text-secondary)] max-w-xs mx-auto font-bold opacity-30">Yuqoridagi tablar orqali kerakli rolni tanlab ruxsatnomalarni boshqaring</p>
              </div>
           </div>
         )}

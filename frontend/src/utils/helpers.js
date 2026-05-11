@@ -15,11 +15,22 @@ export function getDashboardPath(role) {
 export function letterGradeColor(grade) {
   const map = {
     "A'lo":        "#22c55e",
+    "Excellent":   "#22c55e",
     "Yaxshi":      "#3b82f6",
+    "Good":        "#3b82f6",
     "Qoniqarli":   "#f59e0b",
+    "Satisfactory":"#f59e0b",
     "Qoniqarsiz":  "#ef4444",
+    "Fail":        "#ef4444",
   };
   return map[grade] ?? "#6b7280";
+}
+
+export function getGradeLabel(score) {
+  if (score >= 86) return "A'lo (Excellent)";
+  if (score >= 71) return "Yaxshi (Good)";
+  if (score >= 56) return "Qoniqarli (Satisfactory)";
+  return "Qoniqarsiz (Fail)";
 }
 
 export function formatDate(dateStr) {

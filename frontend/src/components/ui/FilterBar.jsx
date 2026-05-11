@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { academicYears } from "../../api";
-import { Filter, Calendar, Layers, XCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Filter, Calendar, Layers, XCircle, ChevronDown } from "lucide-react";
 
 export default function FilterBar({ onChange }) {
+  const { t } = useTranslation();
   const [years, setYears] = useState([]);
   const [academicYear, setAcademicYear] = useState("");
   const [semester, setSemester] = useState("");
@@ -20,52 +22,54 @@ export default function FilterBar({ onChange }) {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-4">
-      <div className="flex items-center gap-2 text-slate-400 mr-2">
+    <div className="flex flex-wrap items-center gap-6">
+      <div className="flex items-center gap-2.5 text-[var(--color-text-secondary)] opacity-60">
         <Filter size={18} />
-        <span className="text-sm font-bold uppercase tracking-wider">Filters</span>
+        <span className="text-xs font-black uppercase tracking-[0.2em]">{t('filters.title')}</span>
       </div>
 
-      {/* Academic Year Select */}
-      <div className="relative flex-1 min-w-[200px]">
-        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-        <select
-          value={academicYear}
-          onChange={(e) => { setAcademicYear(e.target.value); apply(e.target.value, semester); }}
-          className="w-full bg-slate-50 border-slate-200 hover:border-indigo-300 pl-10 h-11 text-sm font-medium rounded-xl transition-all cursor-pointer appearance-none"
-        >
-          <option value="">All Academic Years</option>
-          {years.map((y) => <option key={y.id} value={y.name}>{y.name}</option>)}
-        </select>
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none border-l pl-2 border-slate-200">
-          <div className="w-2 h-2 border-r-2 border-b-2 border-slate-400 rotate-45 mb-1" />
+      <div className="flex flex-wrap items-center gap-4 flex-1">
+        {/* Academic Year Select */}
+        <div className="relative flex-1 min-w-[200px] group">
+          <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] opacity-40 group-focus-within:text-indigo-600 group-focus-within:opacity-100 transition-all pointer-events-none" size={16} />
+          <select
+            value={academicYear}
+            onChange={(e) => { setAcademicYear(e.target.value); apply(e.target.value, semester); }}
+            className="w-full input-premium pl-12 pr-10 h-12 text-sm font-bold cursor-pointer appearance-none bg-[var(--color-bg-primary)]/50 border-[var(--color-border)] hover:border-indigo-600/30"
+          >
+            <option value="">{t('filters.all_years')}</option>
+            {years.map((y) => <option key={y.id} value={y.name}>{y.name}</option>)}
+          </select>
+          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] opacity-40 pointer-events-none group-focus-within:rotate-180 transition-transform" size={16} />
         </div>
-      </div>
 
-      {/* Semester Select */}
-      <div className="relative flex-1 min-w-[200px]">
-        <Layers className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-        <select
-          value={semester}
-          onChange={(e) => { setSemester(e.target.value); apply(academicYear, e.target.value); }}
-          className="w-full bg-slate-50 border-slate-200 hover:border-indigo-300 pl-10 h-11 text-sm font-medium rounded-xl transition-all cursor-pointer appearance-none"
-        >
-          <option value="">All Semesters</option>
-          {[1,2,3,4,5,6,7,8].map((n) => <option key={n} value={n}>{n}-semester</option>)}
-        </select>
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none border-l pl-2 border-slate-200">
-          <div className="w-2 h-2 border-r-2 border-b-2 border-slate-400 rotate-45 mb-1" />
+        {/* Semester Select */}
+        <div className="relative flex-1 min-w-[200px] group">
+          <Layers className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] opacity-40 group-focus-within:text-indigo-600 group-focus-within:opacity-100 transition-all pointer-events-none" size={16} />
+          <select
+            value={semester}
+            onChange={(e) => { setSemester(e.target.value); apply(academicYear, e.target.value); }}
+            className="w-full input-premium pl-12 pr-10 h-12 text-sm font-bold cursor-pointer appearance-none bg-[var(--color-bg-primary)]/50 border-[var(--color-border)] hover:border-indigo-600/30"
+          >
+            <option value="">{t('filters.all_semesters')}</option>
+            {[1,2,3,4,5,6,7,8].map((n) => (
+              <option key={n} value={n}>
+                {n}{t('filters.semester_suffix')}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] opacity-40 pointer-events-none group-focus-within:rotate-180 transition-transform" size={16} />
         </div>
-      </div>
 
-      {(academicYear || semester) && (
-        <button 
-          onClick={clear}
-          className="flex items-center gap-2 px-4 h-11 text-sm font-bold text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
-        >
-          <XCircle size={16} /> Clear
-        </button>
-      )}
+        {(academicYear || semester) && (
+          <button 
+            onClick={clear}
+            className="flex items-center gap-2 px-6 h-12 text-sm font-black text-rose-500 hover:bg-rose-500/10 rounded-2xl transition-all border border-transparent hover:border-rose-500/20 active:scale-95"
+          >
+            <XCircle size={18} /> {t('common.cancel')}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

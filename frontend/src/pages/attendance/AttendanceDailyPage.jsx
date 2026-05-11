@@ -1,19 +1,21 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { attendance, subjects, studentProfiles } from "../../api";
-import { statusLabel, statusColor } from "../../utils/helpers";
+import { statusColor } from "../../utils/helpers";
 import Spinner from "../../components/ui/Spinner";
 import PageHeader from "../../components/ui/PageHeader";
 import Button from "../../components/ui/Button";
 import Select from "../../components/ui/Select";
 import CustomDatePicker from "../../components/ui/CustomDatePicker";
-import { Save, X, UserCheck, Users, Calendar, BookOpen, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Save, X, UserCheck, Users, Calendar, BookOpen } from "lucide-react";
+import { motion } from "framer-motion";
 
 const STATUSES = ["present", "absent", "excused", "late"];
 
 export default function AttendanceDailyPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [subList, setSubList] = useState([]);
   const [subId, setSubId] = useState("");
@@ -53,15 +55,15 @@ export default function AttendanceDailyPage() {
         setGrid(gridInit);
         setExisting(existInit);
       })
-      .catch(() => toast.error("Ma'lumot yuklanmadi"))
+      .catch(() => toast.error(t('common.error')))
       .finally(() => setLoading(false));
-  }, [subId, date, subList]);
+  }, [subId, date, subList, t]);
 
   const setStatus = (userId, status) => setGrid((g) => ({ ...g, [userId]: status }));
 
   const handleSave = async () => {
-    if (!subId) { toast.error("Fan tanlang"); return; }
-    if (students.length === 0) { toast.error("Talabalar topilmadi"); return; }
+    if (!subId) { toast.error(t('attendance.select_subject')); return; }
+    if (students.length === 0) { toast.error(t('attendance.no_students')); return; }
 
     setSaving(true);
     const entries = Object.entries(grid);
@@ -83,10 +85,10 @@ export default function AttendanceDailyPage() {
     setSaving(false);
 
     if (errors === 0) {
-      toast.success(`${saved} ta davomat saqlandi`);
+      toast.success(t('common.success'));
       navigate("/attendance");
     } else {
-      toast.error(`${errors} ta yozuvda xato yuz berdi`);
+      toast.error(t('common.error'));
     }
   };
 
@@ -96,127 +98,141 @@ export default function AttendanceDailyPage() {
   }));
 
   return (
-    <div className="space-y-8 animate-fade-in pb-12">
+    <div className="space-y-10 animate-fade-in pb-12">
       <PageHeader 
-        title="Daily Attendance" 
-        subtitle="Record and track student attendance for today"
+        title={t('attendance.daily_checkin')} 
+        subtitle="Talabalar davomatini qayd etish va nazorat qilish"
         actions={
-          <Button variant="secondary" icon={<X size={18} />} onClick={() => navigate("/attendance")}>
-            Cancel
+          <Button variant="secondary" className="h-14 px-8 rounded-2xl font-black text-xs uppercase tracking-widest border-2" icon={<X size={18} />} onClick={() => navigate("/attendance")}>
+            {t('common.cancel')}
           </Button>
         }
       />
 
       {/* Filter Section */}
-      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="card-premium p-10 grid grid-cols-1 md:grid-cols-2 gap-10 shadow-sm">
         <Select
-          label="Subject & Group"
-          placeholder="Choose a subject"
+          label={t('attendance.subject_group')}
+          placeholder={t('attendance.select_subject')}
           options={subjectOptions}
           value={subId}
           onChange={(val) => setSubId(val)}
           icon={<BookOpen size={18} />}
         />
-        <CustomDatePicker
-          label="Attendance Date"
-          selected={date}
-          onChange={(d) => setDate(d)}
-          icon={<Calendar size={18} />}
-        />
+        <div className="space-y-2">
+           <p className="text-[10px] font-black text-[var(--color-text-secondary)] uppercase tracking-[0.2em] opacity-40 ml-1">{t('attendance.attendance_date')}</p>
+           <CustomDatePicker
+             selected={date}
+             onChange={(d) => setDate(d)}
+           />
+        </div>
       </div>
 
       {loading ? <Spinner /> : subId && students.length > 0 && (
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
+          className="space-y-10"
         >
           {/* Quick Actions Card */}
-          <div className="bg-indigo-600 p-6 rounded-[2rem] text-white flex flex-wrap items-center justify-between gap-6 shadow-xl shadow-indigo-200">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                <Users size={24} />
+          <div className="bg-indigo-600 p-10 rounded-[3rem] text-white flex flex-wrap items-center justify-between gap-10 shadow-2xl shadow-indigo-600/20 relative overflow-hidden group">
+            <div className="absolute right-[-20px] top-[-20px] w-64 h-64 bg-white/5 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000" />
+            <div className="flex items-center gap-8 relative z-10">
+              <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-2xl">
+                <Users size={32} />
               </div>
               <div>
-                <h3 className="font-bold text-lg">Quick Attendance</h3>
-                <p className="text-white/70 text-xs">Set status for all {students.length} students</p>
+                <h3 className="font-black text-2xl tracking-tight">{t('attendance.quick_mark')}</h3>
+                <p className="text-indigo-100/70 text-[10px] font-black uppercase tracking-widest mt-1">{t('attendance.mark_all_subtitle')}</p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-3 relative z-10">
               {STATUSES.map((st) => (
                 <button
                   key={st}
                   onClick={() => setGrid(Object.fromEntries(students.map((sp) => [sp.user, st])))}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border border-white/10"
+                  className="px-8 py-4 bg-white/10 hover:bg-white text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-white/10 rounded-2xl hover:text-indigo-600 active:scale-95 shadow-lg"
                 >
-                  {statusLabel(st)}
+                  {t(`attendance.statuses.${st}`)}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100">
-                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest w-16">#</th>
-                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Student Name</th>
-                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Student ID</th>
-                  {STATUSES.map((st) => (
-                    <th key={st} className="px-4 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">
-                      {statusLabel(st)}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {students.map((sp, i) => (
-                  <tr key={sp.user} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-8 py-5 text-sm font-bold text-slate-300">{i + 1}</td>
-                    <td className="px-8 py-5 font-bold text-slate-800">{sp.full_name}</td>
-                    <td className="px-8 py-5 text-sm text-slate-500 font-medium">{sp.student_id}</td>
+          <div className="card-premium overflow-hidden shadow-md">
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[var(--color-bg-primary)]/40 border-b border-[var(--color-border)]">
+                    <th className="px-10 py-6 text-[10px] font-black text-[var(--color-text-secondary)] uppercase tracking-[0.2em] w-16">#</th>
+                    <th className="px-10 py-6 text-[10px] font-black text-[var(--color-text-secondary)] uppercase tracking-[0.2em]">{t('attendance.student_name')}</th>
+                    <th className="px-10 py-6 text-[10px] font-black text-[var(--color-text-secondary)] uppercase tracking-[0.2em]">{t('attendance.id')}</th>
                     {STATUSES.map((st) => (
-                      <td key={st} className="px-4 py-5 text-center">
-                        <label className="relative inline-flex items-center cursor-pointer group">
-                          <input
-                            type="radio"
-                            name={`att-${sp.user}`}
-                            value={st}
-                            checked={grid[sp.user] === st}
-                            onChange={() => setStatus(sp.user, st)}
-                            className="sr-only"
-                          />
-                          <div 
-                            className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center ${
-                              grid[sp.user] === st 
-                                ? 'scale-110 shadow-lg' 
-                                : 'border-slate-200 hover:border-slate-300'
-                            }`}
-                            style={{ 
-                              borderColor: grid[sp.user] === st ? statusColor(st) : '',
-                              backgroundColor: grid[sp.user] === st ? statusColor(st) : ''
-                            }}
-                          >
-                            {grid[sp.user] === st && <UserCheck size={12} className="text-white" />}
-                          </div>
-                        </label>
-                      </td>
+                      <th key={st} className="px-6 py-6 text-[10px] font-black text-[var(--color-text-secondary)] uppercase tracking-[0.2em] text-center">
+                        {t(`attendance.statuses.${st}`)}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+                  {students.map((sp, i) => (
+                    <tr key={sp.user} className="hover:bg-[var(--color-bg-primary)]/40 transition-all group">
+                      <td className="px-10 py-6 text-xs font-black text-[var(--color-text-secondary)] opacity-30">{i + 1}</td>
+                      <td className="px-10 py-6">
+                        <div className="flex items-center gap-4">
+                           <div className="w-10 h-10 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-secondary)] font-black text-xs group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all shadow-inner">
+                              {sp.full_name.charAt(0)}
+                           </div>
+                           <span className="font-black text-[var(--color-text-primary)] tracking-tight text-base">{sp.full_name}</span>
+                        </div>
+                      </td>
+                      <td className="px-10 py-6">
+                        <span className="text-[10px] font-black text-[var(--color-text-secondary)] bg-[var(--color-bg-primary)] px-4 py-1.5 rounded-lg border border-[var(--color-border)] opacity-40">
+                          {sp.student_id}
+                        </span>
+                      </td>
+                      {STATUSES.map((st) => (
+                        <td key={st} className="px-6 py-6 text-center">
+                          <label className="relative inline-flex items-center cursor-pointer group/toggle">
+                            <input
+                              type="radio"
+                              name={`att-${sp.user}`}
+                              value={st}
+                              checked={grid[sp.user] === st}
+                              onChange={() => setStatus(sp.user, st)}
+                              className="sr-only"
+                            />
+                            <div 
+                              className={`w-8 h-8 rounded-xl border-2 transition-all flex items-center justify-center ${
+                                grid[sp.user] === st 
+                                  ? 'scale-110 shadow-lg' 
+                                  : 'border-[var(--color-border)] hover:border-indigo-600/30'
+                              }`}
+                              style={{ 
+                                borderColor: grid[sp.user] === st ? statusColor(st) : '',
+                                backgroundColor: grid[sp.user] === st ? statusColor(st) : ''
+                              }}
+                            >
+                              {grid[sp.user] === st && <UserCheck size={16} className="text-white" />}
+                            </div>
+                          </label>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-            <div className="p-8 bg-slate-50/50 flex justify-end gap-4 border-t border-slate-100">
+            <div className="p-12 bg-[var(--color-bg-primary)]/20 flex justify-end gap-6 border-t border-[var(--color-border)]">
                <Button 
                 variant="primary" 
-                size="lg" 
-                className="min-w-[200px]"
+                className="min-w-[280px] h-16 font-black rounded-2xl shadow-xl shadow-indigo-600/20"
                 onClick={handleSave} 
                 loading={saving}
-                icon={<Save size={20} />}
+                icon={<Save size={24} />}
               >
-                Save Attendance
+                {t('attendance.save_button')}
               </Button>
             </div>
           </div>
@@ -224,9 +240,11 @@ export default function AttendanceDailyPage() {
       )}
 
       {subId && !loading && students.length === 0 && (
-        <div className="flex flex-col items-center py-20 text-slate-300">
-           <Users size={64} className="opacity-20 mb-4" />
-           <p className="font-bold text-lg">No students found in this group</p>
+        <div className="card-premium p-32 text-center border-dashed border-2 flex flex-col items-center space-y-8 bg-[var(--color-bg-primary)]/20">
+           <div className="w-24 h-24 bg-[var(--color-bg-secondary)] rounded-[2.5rem] flex items-center justify-center text-[var(--color-text-secondary)] opacity-10 shadow-inner">
+              <Users size={56} />
+           </div>
+           <p className="font-black text-xl text-[var(--color-text-primary)] opacity-40 uppercase tracking-[0.2em]">{t('attendance.no_students')}</p>
         </div>
       )}
     </div>

@@ -43,6 +43,34 @@ import PermissionMatrix    from "./pages/admin/PermissionMatrix";
 import ReportsPage      from "./pages/reports/ReportsPage";
 import ProfilePage      from "./pages/auth/ProfilePage";
 import SettingsPage     from "./pages/auth/SettingsPage";
+import CurriculumPage   from "./pages/academic/CurriculumPage";
+import SchedulePage     from "./pages/academic/SchedulePage";
+import ExamSchedulePage from "./pages/academic/ExamSchedulePage";
+import SubjectResourcesPage from "./pages/academic/SubjectResourcesPage";
+import AttendanceReportPage from "./pages/academic/AttendanceReportPage";
+import ExamsPage        from "./pages/academic/ExamsPage";
+import RatingBookPage   from "./pages/academic/RatingBookPage";
+import SubjectSelectionPage from "./pages/academic/SubjectSelectionPage";
+import RetakeApplicationPage from "./pages/academic/RetakeApplicationPage";
+import RetakeSchedulePage from "./pages/academic/RetakeSchedulePage";
+import StudentResumePage from "./pages/student/StudentResumePage";
+import StudentOrdersPage from "./pages/student/StudentOrdersPage";
+import StudentCertificatesPage from "./pages/student/StudentCertificatesPage";
+import StudentDocumentsPage from "./pages/student/StudentDocumentsPage";
+import GraduationSheetPage from "./pages/student/GraduationSheetPage";
+import ThesisPage from "./pages/student/ThesisPage";
+import SocialActivityPage from "./pages/student/SocialActivityPage";
+import PlagiarismInfoPage from "./pages/student/PlagiarismInfoPage";
+import StudentGPAPage from "./pages/student/StudentGPAPage";
+import SubjectCertificatesListPage from "./pages/student/SubjectCertificatesListPage";
+import ScholarshipPage from "./pages/finance/ScholarshipPage";
+import MessageListPage from "./pages/messages/MessageListPage";
+import MessageComposePage from "./pages/messages/MessageComposePage";
+import LoginHistoryPage from "./pages/auth/LoginHistoryPage";
+import SurveyPage from "./pages/system/SurveyPage";
+import PersonalRecordPage from "./pages/academic/PersonalRecordPage";
+import FinanceContractsPage from "./pages/finance/FinanceContractsPage";
+import ComingSoonPage   from "./pages/ComingSoonPage";
 import Page403             from "./pages/Page403";
 
 function DashboardRedirect() {
@@ -98,15 +126,61 @@ export default function App() {
           {/* Reports */}
           <Route path="/reports" element={<ProtectedRoute menuKey="reports"><ReportsPage /></ProtectedRoute>} />
 
-          {/* University */}
-          <Route path="/students" element={<ProtectedRoute menuKey="students"><StudentsPage /></ProtectedRoute>} />
-          <Route path="/groups"   element={<ProtectedRoute menuKey="groups"><GroupsPage /></ProtectedRoute>} />
-          <Route path="/subjects" element={<ProtectedRoute menuKey="subjects"><SubjectsPage /></ProtectedRoute>} />
+          {/* Academic (HEMIS style) */}
+          <Route path="/academic/curriculum" element={<ProtectedRoute menuKey="curriculum"><CurriculumPage /></ProtectedRoute>} />
+          <Route path="/academic/schedule"   element={<ProtectedRoute menuKey="schedule"><SchedulePage /></ProtectedRoute>} />
+          <Route path="/academic/exams/schedule" element={<ProtectedRoute menuKey="exam_schedule"><ExamSchedulePage /></ProtectedRoute>} />
+          <Route path="/academic/resources"      element={<ProtectedRoute menuKey="resources"><SubjectResourcesPage /></ProtectedRoute>} />
+          <Route path="/academic/attendance" element={<ProtectedRoute menuKey="attendance"><AttendanceListPage /></ProtectedRoute>} />
+          <Route path="/academic/attendance/report" element={<ProtectedRoute menuKey="attendance_report"><AttendanceReportPage /></ProtectedRoute>} />
+          <Route path="/academic/grades"     element={<ProtectedRoute menuKey="grades"><GradeListPage /></ProtectedRoute>} />
+          <Route path="/academic/personal-record" element={<ProtectedRoute menuKey="personal_record"><PersonalRecordPage /></ProtectedRoute>} />
+          <Route path="/academic/exams"           element={<ProtectedRoute menuKey="exams"><ExamsPage /></ProtectedRoute>} />
+          <Route path="/academic/rating-book"     element={<ProtectedRoute menuKey="rating_book"><RatingBookPage /></ProtectedRoute>} />
+          <Route path="/academic/subject-selection" element={<ProtectedRoute menuKey="subject_selection"><SubjectSelectionPage /></ProtectedRoute>} />
+
+          {/* Retake */}
+          <Route path="/academic/retake/app"      element={<ProtectedRoute menuKey="retake_app"><RetakeApplicationPage /></ProtectedRoute>} />
+          <Route path="/academic/retake/schedule" element={<ProtectedRoute menuKey="retake_schedule"><RetakeSchedulePage /></ProtectedRoute>} />
+          <Route path="/academic/retake/exams"    element={<ProtectedRoute menuKey="retake_exams"><ExamSchedulePage /></ProtectedRoute>} />
+          <Route path="/academic/retake/grades"   element={<ProtectedRoute menuKey="retake_grades"><RatingBookPage /></ProtectedRoute>} />
+
+          {/* Student Info */}
+          <Route path="/student/resume"           element={<ProtectedRoute menuKey="resume"><StudentResumePage /></ProtectedRoute>} />
+          <Route path="/student/orders"           element={<ProtectedRoute menuKey="orders"><StudentOrdersPage /></ProtectedRoute>} />
+          <Route path="/student/contracts"        element={<ProtectedRoute menuKey="contracts"><FinanceContractsPage /></ProtectedRoute>} />
+          <Route path="/student/certificates"     element={<ProtectedRoute menuKey="certificates"><StudentCertificatesPage /></ProtectedRoute>} />
+          <Route path="/student/documents"        element={<ProtectedRoute menuKey="documents"><StudentDocumentsPage /></ProtectedRoute>} />
+          <Route path="/student/grad-sheet"       element={<ProtectedRoute menuKey="grad_sheet"><GraduationSheetPage /></ProtectedRoute>} />
+          <Route path="/student/gpa"              element={<ProtectedRoute menuKey="gpa"><StudentGPAPage /></ProtectedRoute>} />
+          <Route path="/student/certificates-list" element={<ProtectedRoute menuKey="cert_list"><SubjectCertificatesListPage /></ProtectedRoute>} />
+          <Route path="/student/plagiarism"       element={<ProtectedRoute menuKey="plagiarism"><PlagiarismInfoPage /></ProtectedRoute>} />
+          <Route path="/student/personal-info"    element={<PersonalRecordPage />} />
+          <Route path="/student/thesis"           element={<ProtectedRoute menuKey="thesis"><ThesisPage /></ProtectedRoute>} />
+          <Route path="/student/social"           element={<ProtectedRoute menuKey="social"><SocialActivityPage /></ProtectedRoute>} />
+          
+          {/* Finance */}
+          <Route path="/finance/contracts"        element={<ProtectedRoute menuKey="fin_contracts"><FinanceContractsPage /></ProtectedRoute>} />
+          <Route path="/finance/scholarship"      element={<ProtectedRoute menuKey="scholarship"><ScholarshipPage /></ProtectedRoute>} />
+
+          {/* Messaging */}
+          <Route path="/messages/list"            element={<ProtectedRoute menuKey="my_messages"><MessageListPage /></ProtectedRoute>} />
+          <Route path="/messages/create"          element={<ProtectedRoute menuKey="create_message"><MessageComposePage /></ProtectedRoute>} />
+
+          {/* System */}
+          <Route path="/system/hemis-survey"      element={<ProtectedRoute menuKey="hemis_survey"><SurveyPage titleKey="system.hemis_survey_title" /></ProtectedRoute>} />
+          <Route path="/system/global-survey"     element={<ProtectedRoute menuKey="global_survey"><SurveyPage titleKey="system.global_survey_title" /></ProtectedRoute>} />
+          <Route path="/system/login-history"     element={<ProtectedRoute menuKey="login_history"><LoginHistoryPage /></ProtectedRoute>} />
 
           {/* Admin */}
           <Route path="/admin/users"       element={<ProtectedRoute menuKey="users"><UsersPage /></ProtectedRoute>} />
           <Route path="/admin/roles"       element={<ProtectedRoute menuKey="roles"><RolesPage /></ProtectedRoute>} />
           <Route path="/admin/permissions" element={<ProtectedRoute menuKey="permissions"><PermissionMatrix /></ProtectedRoute>} />
+
+          {/* University */}
+          <Route path="/university/students" element={<ProtectedRoute menuKey="students"><StudentsPage /></ProtectedRoute>} />
+          <Route path="/university/groups"   element={<ProtectedRoute menuKey="groups"><GroupsPage /></ProtectedRoute>} />
+          <Route path="/university/subjects" element={<ProtectedRoute menuKey="subjects"><SubjectsPage /></ProtectedRoute>} />
 
           {/* Account */}
           <Route path="/profile"  element={<ProfilePage />} />

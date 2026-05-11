@@ -138,21 +138,10 @@ class MyPermissionsView(APIView):
         user = request.user
 
         if user.is_superuser:
-            items = MenuItem.objects.filter(is_active=True).order_by("order")
-            data = [
-                {
-                    "key":        item.key,
-                    "label":      item.label,
-                    "url_path":   item.url_path,
-                    "icon":       item.icon,
-                    "order":      item.order,
-                    "can_view":   True,
-                    "can_add":    True,
-                    "can_edit":   True,
-                    "can_delete": True,
-                }
-                for item in items
-            ]
+            items = MenuItem.objects.filter(parent=None, is_active=True).order_by("order")
+            serializer = MenuItemSerializer(items, many=True)
+            # Add implicit permissions for superuser
+            data = self._add_superuser_perms(serializer.data)
             return success(data)
 
         try:
@@ -160,25 +149,71 @@ class MyPermissionsView(APIView):
         except Role.DoesNotExist:
             return success([])
 
-        perms = (
-            RolePermission.objects
-            .filter(role=role, can_view=True, menu_item__is_active=True)
-            .select_related("menu_item")
-            .order_by("menu_item__order")
-        )
-
-        data = [
-            {
-                "key":        p.menu_item.key,
-                "label":      p.menu_item.label,
-                "url_path":   p.menu_item.url_path,
-                "icon":       p.menu_item.icon,
-                "order":      p.menu_item.order,
-                "can_view":   p.can_view,
-                "can_add":    p.can_add,
-                "can_edit":   p.can_edit,
-                "can_delete": p.can_delete,
-            }
-            for p in perms
-        ]
+        # Get all permissions for this role
+        perms = RolePermission.objects.filter(
+            role=role, can_view=True, menu_item__is_active=True
+        ).select_related("menu_item")
+        
+        perm_map = {p.menu_item_id: p for p in perms}
+        
+        # Build nested structure
+        top_level_items = MenuItem.objects.filter(parent=None, is_active=True).order_by("order")
+        data = []
+        for item in top_level_items:
+            item_data = self._build_item_data(item, perm_map)
+            if item_data:
+                data.append(item_data)
+        
         return success(data)
+
+    def _add_superuser_perms(self, items):
+        for item in items:
+            item["can_view"] = True
+            item["can_add"] = True
+            item["can_edit"] = True
+            item["can_delete"] = True
+            if item.get("children"):
+                self._add_superuser_perms(item["children"])
+        return items
+
+    def _build_item_data(self, item, perm_map):
+        perm = perm_map.get(item.id)
+        if not perm and item.key != "dashboard": # Allow dashboard or check if any child has perm
+            children_data = []
+            for child in item.children.filter(is_active=True).order_by("order"):
+                child_data = self._build_item_data(child, perm_map)
+                if child_data:
+                    children_data.append(child_data)
+            
+            if not children_data:
+                return None
+            
+            return {
+                "key": item.key,
+                "label": item.label,
+                "url_path": item.url_path,
+                "icon": item.icon,
+                "order": item.order,
+                "can_view": True,
+                "children": children_data
+            }
+        
+        # If item itself has perm
+        children_data = []
+        for child in item.children.filter(is_active=True).order_by("order"):
+            child_data = self._build_item_data(child, perm_map)
+            if child_data:
+                children_data.append(child_data)
+        
+        return {
+            "key": item.key,
+            "label": item.label,
+            "url_path": item.url_path,
+            "icon": item.icon,
+            "order": item.order,
+            "can_view": True,
+            "can_add": perm.can_add if perm else True,
+            "can_edit": perm.can_edit if perm else True,
+            "can_delete": perm.can_delete if perm else True,
+            "children": children_data
+        }

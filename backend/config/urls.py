@@ -12,6 +12,9 @@ urlpatterns = [
     path("api/rbac/",          include("apps.rbac.urls")),
     path("api/notifications/", include("apps.notifications.urls")),
     path("api/analytics/",     include("apps.analytics.urls")),
+    path("api/students/",      include("apps.students.urls")),
+    path("api/finance/",       include("apps.finance.urls")),
+    path("api/messaging/",     include("apps.messaging.urls")),
 ]
 
 if settings.DEBUG:

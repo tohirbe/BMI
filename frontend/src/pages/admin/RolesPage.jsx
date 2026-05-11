@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { rbac } from "../../api";
 import Spinner from "../../components/ui/Spinner";
 import PageHeader from "../../components/ui/PageHeader";
@@ -9,6 +10,7 @@ import { Shield, Key, ChevronRight, CheckCircle2, Lock, ArrowRight, ShieldCheck,
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function RolesPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,37 +18,37 @@ export default function RolesPage() {
   useEffect(() => {
     rbac.roles()
       .then((r) => setList(r.data.data ?? []))
-      .catch(() => toast.error("Rollar yuklanmadi"))
+      .catch(() => toast.error(t('common.error')))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   if (loading) return <Spinner />;
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
       <PageHeader 
-        title="System Roles" 
-        subtitle="Manage authorization levels and system access for all university roles"
+        title={t('nav.roles')} 
+        subtitle={t('admin.users_subtitle')}
         icon={<Shield size={28} className="text-indigo-600" />}
       />
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden"
+        className="card-premium overflow-hidden shadow-md"
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left border-separate border-spacing-0">
             <thead>
-              <tr className="bg-slate-50/50">
-                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">Role Identity</th>
-                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">System Slug</th>
-                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">Permissions</th>
-                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 text-center">Status</th>
-                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 text-right">Actions</th>
+              <tr className="bg-[var(--color-bg-primary)]/50">
+                <th className="px-10 py-6 text-[11px] font-black text-[var(--color-text-secondary)] uppercase tracking-[0.2em] border-b border-[var(--color-border)]">{t('admin.system_role')}</th>
+                <th className="px-10 py-6 text-[11px] font-black text-[var(--color-text-secondary)] uppercase tracking-[0.2em] border-b border-[var(--color-border)]">Slug</th>
+                <th className="px-10 py-6 text-[11px] font-black text-[var(--color-text-secondary)] uppercase tracking-[0.2em] border-b border-[var(--color-border)]">{t('common.permissions_label')}</th>
+                <th className="px-10 py-6 text-[11px] font-black text-[var(--color-text-secondary)] uppercase tracking-[0.2em] border-b border-[var(--color-border)] text-center">{t('admin.status')}</th>
+                <th className="px-10 py-6 text-[11px] font-black text-[var(--color-text-secondary)] uppercase tracking-[0.2em] border-b border-[var(--color-border)] text-right">{t('admin.actions')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-[var(--color-border)]">
               <AnimatePresence mode="popLayout">
                 {list.map((role, idx) => (
                   <motion.tr 
@@ -54,41 +56,40 @@ export default function RolesPage() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.03 }}
-                    className="group hover:bg-slate-50/80 transition-all duration-300"
+                    className="group hover:bg-[var(--color-bg-primary)]/80 transition-all duration-300"
                   >
                     <td className="px-10 py-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-indigo-200">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm">
                           <ShieldCheck size={24} />
                         </div>
                         <div>
-                           <p className="font-black text-slate-800 tracking-tight text-lg leading-tight">{role.name}</p>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Management Role</p>
+                           <p className="font-black text-[var(--color-text-primary)] tracking-tight text-lg leading-tight">{role.name}</p>
+                           <p className="text-[10px] font-bold text-[var(--color-text-secondary)] uppercase tracking-widest mt-1 opacity-40">{t('admin.system_role')}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-10 py-6">
-                       <code className="text-[11px] font-black text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 group-hover:bg-white transition-colors">
+                       <code className="text-[11px] font-black text-[var(--color-text-secondary)] bg-[var(--color-bg-primary)] px-3 py-1.5 rounded-lg border border-[var(--color-border)]">
                           role.{role.slug}
                        </code>
                     </td>
                     <td className="px-10 py-6">
                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-indigo-400 border border-slate-100 group-hover:bg-indigo-50 transition-all">
+                          <div className="w-9 h-9 rounded-xl bg-[var(--color-bg-primary)] flex items-center justify-center text-indigo-600 border border-[var(--color-border)]">
                              <Activity size={18} />
                           </div>
                           <div>
-                             <span className="text-sm font-black text-slate-700 tracking-tight">
+                             <span className="text-sm font-black text-[var(--color-text-primary)] tracking-tight">
                                 {role.permissions?.filter((p) => p.can_view).length ?? 0}
                              </span>
-                             <span className="text-xs font-bold text-slate-400 ml-1.5 uppercase tracking-tighter">Pages</span>
                           </div>
                        </div>
                     </td>
                     <td className="px-10 py-6 text-center">
-                       <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${role.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}>
-                          <div className={`w-2 h-2 rounded-full ${role.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-                          {role.is_active ? "Active" : "Inactive"}
+                       <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${role.is_active ? 'bg-emerald-600/10 text-emerald-600' : 'bg-[var(--color-bg-primary)] text-[var(--color-text-secondary)]'}`}>
+                          <div className={`w-2 h-2 rounded-full ${role.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-[var(--color-text-secondary)] opacity-30'}`} />
+                          {role.is_active ? t('admin.active') : t('admin.blocked')}
                        </div>
                     </td>
                     <td className="px-10 py-6 text-right">
@@ -99,7 +100,7 @@ export default function RolesPage() {
                           onClick={() => navigate(`/admin/permissions?role=${role.id}`)}
                           icon={<Settings2 size={16} className="group-hover/btn:rotate-90 transition-transform duration-500" />}
                        >
-                          Manage Matrix
+                          {t('common.settings')}
                        </Button>
                     </td>
                   </motion.tr>
